@@ -1,0 +1,7 @@
+CREATE TABLE household (
+    id BIGSERIAL PRIMARY KEY,
+    agency_id BIGINT NOT NULL REFERENCES agency (id),
+    county VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+)
