@@ -18,11 +18,34 @@ Spring Boot **REST API** for Foster Together MN: directory (MVP 1), support, eve
 - **Amazon Cognito** JWT + Spring Security resource server
 - **Deploy:** ECS Fargate + ALB + RDS (CDK in this repo)
 
-## Local development (when scaffold exists)
+## Local development
 
-1. Run PostgreSQL (Docker recommended).
-2. Set `SPRING_DATASOURCE_*` or profile-specific config (see [`.env.example`](.env.example)); never commit secrets.
-3. Run the app; point **web** at `VITE_API_BASE_URL` (e.g. `http://localhost:8080`).
+### JVM only (no containers)
+
+```bash
+./mvnw spring-boot:run
+```
+
+Health: `curl -s http://localhost:8080/actuator/health`
+
+### Docker Compose — API + PostgreSQL (stories 2.1 + 4.0b)
+
+Requires [Docker](https://docs.docker.com/get-docker/) with Compose v2.
+
+```bash
+docker compose up --build
+```
+
+- **Postgres:** `localhost:5432`, database `fostertogether`, user/password `fostertogether` (dev only; see [`.env.example`](.env.example)).
+- **API:** `http://localhost:8080` — `depends_on` waits until Postgres passes `pg_isready` (orchestration-level “wait for DB”). The app does not use JDBC until Flyway/data access stories; then set `SPRING_DATASOURCE_*` accordingly.
+
+Stop and remove containers: `docker compose down`. To wipe DB data: `docker compose down -v`.
+
+### Later: JDBC from the host against Compose Postgres
+
+1. Run only the DB: `docker compose up db` (or full compose without binding API if you prefer).
+2. Set `SPRING_DATASOURCE_*` (see [`.env.example`](.env.example)); never commit secrets.
+3. Run `./mvnw spring-boot:run`; point **web** at `VITE_API_BASE_URL` (e.g. `http://localhost:8080`).
 
 ## Conventions
 
