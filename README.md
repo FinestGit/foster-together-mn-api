@@ -36,8 +36,8 @@ Requires [Docker](https://docs.docker.com/get-docker/) with Compose v2.
 docker compose up --build
 ```
 
-- **Postgres:** `localhost:5432`, database `fostertogether`, user/password `fostertogether` (dev only; see [`.env.example`](.env.example)).
-- **API:** `http://localhost:8080` — `depends_on` waits until Postgres passes `pg_isready` (orchestration-level “wait for DB”). The app does not use JDBC until Flyway/data access stories; then set `SPRING_DATASOURCE_*` accordingly.
+- **Postgres:** `localhost:5432` from the **host**; inside the **API** container the JDBC URL uses hostname **`db`** (set via `SPRING_DATASOURCE_*` in [`docker-compose.yml`](docker-compose.yml)). Database `fostertogether`, user/password `fostertogether` (dev only; see [`.env.example`](.env.example)).
+- **API:** `http://localhost:8080` — `depends_on` waits until Postgres passes `pg_isready` before starting the API.
 
 Stop and remove containers: `docker compose down`. To wipe DB data: `docker compose down -v`.
 
