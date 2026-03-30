@@ -45,6 +45,12 @@ public class AgencyController {
         return ResponseEntity.notFound().build();
     }
 
+    @PostMapping()
+    public ResponseEntity<AgencyResponse> createAgency(@RequestBody @Valid AgencyCreateRequest request) {
+        AgencyResponse response = agencyService.create(request.name());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<AgencyResponse> updateAgency(@RequestBody @Valid AgencyUpdateRequest request,
             @PathVariable long id) {
@@ -53,12 +59,6 @@ public class AgencyController {
             return ResponseEntity.ok(response.get());
         }
         return ResponseEntity.notFound().build();
-    }
-
-    @PostMapping()
-    public ResponseEntity<AgencyResponse> createAgency(@RequestBody @Valid AgencyCreateRequest request) {
-        AgencyResponse response = agencyService.create(request.name());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}")

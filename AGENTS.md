@@ -4,7 +4,7 @@
 
 1. Read ADRs in the **docs** repo (`foster-together-mn`): [docs/adr/README.md](https://github.com/your-org/foster-together-mn/blob/main/docs/adr/README.md) (adjust URL to your remote).
 2. **MVP 1** scope: directory CRUD only — see [docs/MVP1_CHECKLIST.md](https://github.com/your-org/foster-together-mn/blob/main/docs/MVP1_CHECKLIST.md).
-3. **Lost context?** Cursor plans on this machine: **`~/.cursor/plans/`** — read `ftmn_custom_platform_architecture_73303726.plan.md` (architecture), `mvp1_condensed_roadmap_78ea4e2f.plan.md` (current next steps), and `mvp1_story_breakdown_a8b54b6d.plan.md` (historical; living detail is **docs** `MVP1_STORIES.md`). Full index: **docs repo** [AGENTS.md](https://github.com/your-org/foster-together-mn/blob/main/AGENTS.md) § *Cursor plans* (adjust URL to your remote).
+3. **Lost context?** Cursor plans on this machine: **`~/.cursor/plans/`** — read `ftmn_custom_platform_architecture_73303726.plan.md` (architecture), `mvp1_condensed_roadmap_78ea4e2f.plan.md` (current next steps), `mvp1_story_breakdown_a8b54b6d.plan.md` (historical; living detail is **docs** `MVP1_STORIES.md`), and `jotform_intake_integration_addendum_bea5f71c.plan.md` (deferred Micayla intake integration fields + mapping considerations). Full index: **docs repo** [AGENTS.md](https://github.com/your-org/foster-together-mn/blob/main/AGENTS.md) § *Cursor plans* (adjust URL to your remote).
 
 ## Hard rules
 
