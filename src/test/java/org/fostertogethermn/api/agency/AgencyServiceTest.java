@@ -2,7 +2,6 @@ package org.fostertogethermn.api.agency;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -18,6 +17,7 @@ import org.fostertogethermn.api.exception.AgencyInUseException;
 import org.fostertogethermn.api.exception.AgencyNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,7 +43,7 @@ public class AgencyServiceTest {
         AgencyResponse agency2 = new AgencyResponse(2L, "Agency 2", created, updated);
         AgencyResponse agency3 = new AgencyResponse(3L, "Agency 3", created, updated);
         List<AgencyResponse> expected = List.of(agency1, agency2, agency3);
-        when(template.query(anyString(), (RowMapper<AgencyResponse>) any(RowMapper.class))).thenReturn(expected);
+        when(template.query(anyString(), ArgumentMatchers.<RowMapper<AgencyResponse>>any())).thenReturn(expected);
 
         // Act
         List<AgencyResponse> result = agencyService.findAll();
@@ -59,7 +59,7 @@ public class AgencyServiceTest {
         OffsetDateTime created = OffsetDateTime.parse("2020-01-01T00:00:00Z");
         OffsetDateTime updated = OffsetDateTime.parse("2020-01-01T00:00:00Z");
         AgencyResponse agency = new AgencyResponse(id, "Agency 1", created, updated);
-        when(template.queryForObject(anyString(), (RowMapper<AgencyResponse>) any(RowMapper.class), anyLong()))
+        when(template.queryForObject(anyString(), ArgumentMatchers.<RowMapper<AgencyResponse>>any(), anyLong()))
                 .thenReturn(agency);
 
         // Act
@@ -73,7 +73,7 @@ public class AgencyServiceTest {
     void findById_returnsEmpty() {
         // Arrange
         long id = 1;
-        when(template.queryForObject(anyString(), (RowMapper<AgencyResponse>) any(RowMapper.class), anyLong()))
+        when(template.queryForObject(anyString(), ArgumentMatchers.<RowMapper<AgencyResponse>>any(), anyLong()))
                 .thenThrow(new EmptyResultDataAccessException(1));
 
         // Act
@@ -90,7 +90,7 @@ public class AgencyServiceTest {
         OffsetDateTime created = OffsetDateTime.parse("2020-01-01T00:00:00Z");
         OffsetDateTime updated = OffsetDateTime.parse("2020-01-01T00:00:00Z");
         AgencyResponse agency = new AgencyResponse(1L, name, created, updated);
-        when(template.queryForObject(anyString(), (RowMapper<AgencyResponse>) any(RowMapper.class), anyString()))
+        when(template.queryForObject(anyString(), ArgumentMatchers.<RowMapper<AgencyResponse>>any(), anyString()))
                 .thenReturn(agency);
 
         // Act
@@ -108,7 +108,7 @@ public class AgencyServiceTest {
         OffsetDateTime created = OffsetDateTime.parse("2020-01-01T00:00:00Z");
         OffsetDateTime updated = OffsetDateTime.parse("2020-01-01T00:00:00Z");
         AgencyResponse agency = new AgencyResponse(id, name, created, updated);
-        when(template.queryForObject(anyString(), (RowMapper<AgencyResponse>) any(RowMapper.class), anyString(),
+        when(template.queryForObject(anyString(), ArgumentMatchers.<RowMapper<AgencyResponse>>any(), anyString(),
                 anyLong()))
                 .thenReturn(agency);
 
@@ -124,7 +124,7 @@ public class AgencyServiceTest {
         // Arrange
         long id = 1;
         String name = "test agency";
-        when(template.queryForObject(anyString(), (RowMapper<AgencyResponse>) any(RowMapper.class), anyString(),
+        when(template.queryForObject(anyString(), ArgumentMatchers.<RowMapper<AgencyResponse>>any(), anyString(),
                 anyLong()))
                 .thenThrow(new EmptyResultDataAccessException(1));
 
