@@ -6,7 +6,7 @@ Spring Boot **REST API** for Foster Together MN: directory (MVP 1), support, eve
 
 | Repo | Role |
 | ---- | ---- |
-| **foster-together-mn** (docs) | ADRs, architecture diagram, [MVP1 checklist](https://github.com/your-org/foster-together-mn/blob/main/docs/MVP1_CHECKLIST.md) |
+| **foster-together-mn** (docs) | ADRs, architecture diagram, [MVP1 directory breakdown](https://github.com/your-org/foster-together-mn/blob/main/docs/MVP1_DIRECTORY_BREAKDOWN.md) |
 | **foster-together-mn-web** | React + Vite SPA |
 | **this repo** | Java API + **AWS CDK** (`infra/` when added) |
 

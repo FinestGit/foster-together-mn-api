@@ -18,7 +18,10 @@ import org.fostertogethermn.api.exception.AgencyNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -31,14 +34,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 @WebMvcTest(AgencyController.class)
+@Import(org.fostertogethermn.api.config.SecurityConfig.class)
 public class AgencyControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
     private AgencyService agencyService;
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
 
     @Test
     void listAgencies_returnsOk() throws Exception {
@@ -53,7 +60,7 @@ public class AgencyControllerTest {
         when(agencyService.findAll()).thenReturn(mockResponse);
 
         // Act
-        ResultActions results = mockMvc.perform(get("/api/v1/agencies"));
+        ResultActions results = mockMvc.perform(get("/api/v1/agencies").with(jwt()));
 
         // Assert
         results.andExpect(status().isOk());
@@ -76,7 +83,7 @@ public class AgencyControllerTest {
         when(agencyService.findById(id)).thenReturn(Optional.of(agency));
 
         // Act
-        ResultActions results = mockMvc.perform(get("/api/v1/agencies/{id}", id));
+        ResultActions results = mockMvc.perform(get("/api/v1/agencies/{id}", id).with(jwt()));
         // Assert
         results.andExpect(status().isOk());
         results.andExpect(jsonPath("$.id").value(id));
@@ -92,7 +99,7 @@ public class AgencyControllerTest {
         when(agencyService.findById(id)).thenReturn(Optional.empty());
 
         // Act
-        ResultActions results = mockMvc.perform(get("/api/v1/agencies/{id}", id));
+        ResultActions results = mockMvc.perform(get("/api/v1/agencies/{id}", id).with(jwt()));
         // Assert
         results.andExpect(status().isNotFound());
     }
@@ -110,7 +117,9 @@ public class AgencyControllerTest {
 
         // Act
         ResultActions results = mockMvc
-                .perform(post("/api/v1/agencies").contentType(MediaType.APPLICATION_JSON)
+                .perform(post("/api/v1/agencies")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("agency:write")))
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(request)));
         // Assert
         results.andExpect(status().isCreated());
@@ -133,7 +142,9 @@ public class AgencyControllerTest {
 
         // Act
         ResultActions results = mockMvc
-                .perform(put("/api/v1/agencies/{id}", id).contentType(MediaType.APPLICATION_JSON)
+                .perform(put("/api/v1/agencies/{id}", id)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("agency:write")))
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(request)));
         // Assert
         results.andExpect(status().isOk());
@@ -152,7 +163,9 @@ public class AgencyControllerTest {
 
         // Act
         ResultActions results = mockMvc
-                .perform(put("/api/v1/agencies/{id}", id).contentType(MediaType.APPLICATION_JSON)
+                .perform(put("/api/v1/agencies/{id}", id)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("agency:write")))
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(request)));
         // Assert
         results.andExpect(status().isNotFound());
@@ -165,7 +178,8 @@ public class AgencyControllerTest {
         doNothing().when(agencyService).delete(id);
 
         // Act
-        ResultActions results = mockMvc.perform(delete("/api/v1/agencies/{id}", id));
+        ResultActions results = mockMvc.perform(delete("/api/v1/agencies/{id}", id)
+                .with(jwt().authorities(new SimpleGrantedAuthority("agency:delete"))));
         // Assert
         results.andExpect(status().isNoContent());
     }
@@ -178,7 +192,8 @@ public class AgencyControllerTest {
                 .delete(id);
 
         // Act
-        ResultActions results = mockMvc.perform(delete("/api/v1/agencies/{id}", id));
+        ResultActions results = mockMvc.perform(delete("/api/v1/agencies/{id}", id)
+                .with(jwt().authorities(new SimpleGrantedAuthority("agency:delete"))));
         // Assert
         results.andExpect(status().isNotFound());
     }
@@ -190,8 +205,36 @@ public class AgencyControllerTest {
         doThrow(new AgencyInUseException(String.format("Agency in use: id=%d", id))).when(agencyService).delete(id);
 
         // Act
-        ResultActions results = mockMvc.perform(delete("/api/v1/agencies/{id}", id));
+        ResultActions results = mockMvc.perform(delete("/api/v1/agencies/{id}", id)
+                .with(jwt().authorities(new SimpleGrantedAuthority("agency:delete"))));
         // Assert
         results.andExpect(status().isConflict());
+    }
+
+    @Test
+    void deleteAgencyById_noJWT() throws Exception {
+        // Arrange
+        long id = 1;
+        doNothing().when(agencyService).delete(id);
+
+        // Act
+        ResultActions results = mockMvc.perform(delete("/api/v1/agencies/{id}", id));
+
+        // Assert
+        results.andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deleteAgencyById_IncorrectJWT() throws Exception {
+        // Arrange
+        long id = 1;
+        doNothing().when(agencyService).delete(id);
+
+        // Act
+        ResultActions results = mockMvc.perform(delete("/api/v1/agencies/{id}", id)
+                .with(jwt().authorities(new SimpleGrantedAuthority("agency:write"))));
+
+        // Assert
+        results.andExpect(status().isForbidden());
     }
 }
