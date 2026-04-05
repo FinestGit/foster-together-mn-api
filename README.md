@@ -18,6 +18,10 @@ Spring Boot **REST API** for Foster Together MN: directory (MVP 1), support, eve
 - **Amazon Cognito** JWT + Spring Security resource server
 - **Deploy:** ECS Fargate + ALB + RDS (CDK in this repo)
 
+## API contract
+
+**OpenAPI** (`openapi.yaml`, when added to this repo) is the **authoritative** description of HTTP routes, schemas, and **which operations require authentication** (e.g. Cognito JWT as Bearer). Until that file exists, refer to `SecurityConfig`, controllers, and the [JWT resource server](#jwt-resource-server-agy-4) section below.
+
 ## Local development
 
 ### JVM only (no containers)
@@ -53,3 +57,63 @@ Stop and remove containers: `docker compose down`. To wipe DB data: `docker comp
 - **CORS:** allow the **`web`** origin (`app.` in prod, localhost dev port in dev).
 
 See [AGENTS.md](AGENTS.md) for AI assistant notes.
+
+## JWT resource server (AGY-4)
+
+The API validates **access tokens** from your Cognito user pool (Spring OAuth2 resource server). Configure the issuer (no trailing slash):
+
+```bash
+# Example — use your pool id from Cognito → User pool → General settings
+export SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://cognito-idp.us-east-2.amazonaws.com/us-east-2_twZRjZ9VP
+```
+
+Or set `spring.security.oauth2.resourceserver.jwt.issuer-uri` in `application.properties` / profile.
+
+### Authorities (exact strings Spring checks)
+
+| Spring authority   | Routes |
+| ------------------ | ------ |
+| `agency:write`     | `POST /api/v1/agencies`, `PUT /api/v1/agencies/{id}` |
+| `agency:delete`    | `DELETE /api/v1/agencies/{id}` |
+
+All other `/api/**` routes (including `GET /api/v1/agencies` and `GET /api/v1/agencies/{id}`) require a **valid** JWT but **no** named authority beyond authentication.
+
+### Cognito group → authority mapping
+
+Implemented in `CognitoGroupConverter`:
+
+| Cognito group (`cognito:groups`) | Granted authorities      |
+| -------------------------------- | ------------------------ |
+| `ftmn-directory-admin`           | `agency:write`, `agency:delete` |
+
+Add more groups in that converter when you introduce finer roles.
+
+### Smoke test with `curl`
+
+You need a pool **access token** (JWT) for a user in **`ftmn-directory-admin`**. The in-app login story is not built yet, so use one of these:
+
+1. **Cognito Hosted UI (no custom UI)** — In AWS Console → User pool → **App integration** → your domain → use the **Hosted UI** sign-in link (or build the `/oauth2/authorize` URL). After sign-in, complete the OAuth code flow (token from `/oauth2/token`) or use a tool that captures the token. You do **not** need the Foster Together SPA for this.
+2. **AWS CLI** — If the app client allows it, `admin-initiate-auth` with `ADMIN_NO_SRP_AUTH` returns `AuthenticationResult.AccessToken` (needs IAM permission `cognito-idp:AdminInitiateAuth` and a user with a password). Enable **ALLOW_ADMIN_USER_PASSWORD_AUTH** on the app client if you use this path.
+3. **Until you have a token** — Run `./mvnw test` (e.g. `AgencyControllerTest`) to verify JWT rules without manual `curl`.
+
+```bash
+API=http://localhost:8080
+TOKEN='eyJraWQ...'   # access token from Hosted UI flow, CLI, or future app login (not id token)
+
+# Valid JWT, user has agency:delete → 204 when id exists and is deletable
+curl -s -o /dev/null -w "HTTP %{http_code}\n" -X DELETE \
+  -H "Authorization: Bearer $TOKEN" \
+  "$API/api/v1/agencies/1"
+
+# Same user can read the list (any authenticated JWT)
+curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+  -H "Authorization: Bearer $TOKEN" \
+  "$API/api/v1/agencies"
+```
+
+**No token** on `DELETE` → **401** (anonymous). **Valid JWT** without `agency:delete` (e.g. user not in `ftmn-directory-admin`) → **403**. Wrong/expired signature → **401** from the resource server.
+
+```bash
+# No Authorization header → 401
+curl -s -o /dev/null -w "HTTP %{http_code}\n" -X DELETE "$API/api/v1/agencies/999999"
+```

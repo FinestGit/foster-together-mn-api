@@ -63,13 +63,7 @@ public class AgencyController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAgencyById(@PathVariable long id) {
-        try {
-            agencyService.delete(id);
-        } catch (AgencyNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (AgencyInUseException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
+        agencyService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

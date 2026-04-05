@@ -14,6 +14,7 @@ Start with the **docs** repo: [AGENTS.md](https://github.com/your-org/foster-tog
 - **SQL-first:** Flyway + JdbcTemplate/MyBatis. Do **not** introduce Spring Data JPA/Hibernate as the default without a new ADR.
 - **PII and RBAC:** **Staff/admin** vs **volunteer** access models differ. Volunteers (e.g. event check-in) must **not** receive full directory PII—only **volunteer-scoped DTOs** (minimal person cue + non-identifying child counts as defined in stories). Strip or **403** sensitive fields and routes using JWT claims / `cognito:groups`; never rely on the UI to hide data.
 - **CORS:** Allow the **web** origin in dev; production allowlist is a tracked story in the agency breakdown (`AGY-14`).
+- **OpenAPI:** When **`openapi.yaml`** exists in this repo, treat it as the canonical HTTP contract and **per-operation security** (e.g. Bearer JWT on protected routes). Keep it aligned with Spring Security and controllers.
 
 ## Human implementer
 
